@@ -339,4 +339,56 @@ sa_compare |>
   arrange(desc(abs(pct_diff))) |>
   head(5)
 
+# 5.1a
+gas_cv_fc <- can_gas |>
+  select(Month, Volume) |>
+  stretch_tsibble(.init = 240, .step = 1) |>
+  model(snaive = SNAIVE(Volume),
+        tslm   = TSLM(log(Volume) ~ trend() + season())) |>
+  forecast(h = 1)
 
+gas_cv_fc |>
+  accuracy(can_gas, measures = list(MAE = MAE, RMSE = RMSE))
+
+# 5.1a ANSWER: The first evaluated forecast is for January 1980 and the last is
+# for February 2005 (the March 2005 forecast has no actual value). Seasonal naive:
+# MAE = 0.562, RMSE = 0.702. TSLM: MAE = 4.01, RMSE = 4.36. Seasonal naive
+# forecasts much more accurately, and both metrics agree.
+
+# first and last forecast dates
+range(gas_cv_fc$Month)
+
+# 5.2a
+errs <- gas_cv_fc |>
+  as_tibble() |>
+  left_join(as_tibble(can_gas) |> select(Month, actual = Volume),
+            by = "Month") |>
+  mutate(e = actual - .mean) |>
+  select(Month, .model, e) |>
+  pivot_wider(names_from = .model, values_from = e) |>
+  na.omit()
+
+forecast::dm.test(errs$snaive, errs$tslm, h = 1, power = 1)
+
+# 5.2a ANSWER: DM = -31.28, p-value < 2.2e-16. We reject the null of equal
+# forecast accuracy: the seasonal naive forecasts are significantly more accurate
+# than the linear trend + seasonal dummies forecasts.
+
+# 5.3a
+gas_cv_fc_roll <- can_gas |>
+  select(Month, Volume) |>
+  slide_tsibble(.size = 240, .step = 1) |>
+  model(snaive = SNAIVE(Volume),
+        tslm   = TSLM(log(Volume) ~ trend() + season())) |>
+  forecast(h = 1)
+
+gas_cv_fc_roll |>
+  accuracy(can_gas, measures = list(MAE = MAE, RMSE = RMSE))
+
+# 5.3a ANSWER: Rolling window: seasonal naive MAE = 0.562, RMSE = 0.702 (unchanged);
+# TSLM MAE = 2.09, RMSE = 2.42 (much better than 4.01 and 4.36). Seasonal naive is
+# unchanged because it only uses the value from 12 months earlier, so the window
+# size does not matter. TSLM improves because the rolling window drops older data,
+# so its trend reflects the slower recent growth instead of being pulled up by
+# fast 1960s growth, which caused the overshooting seen in 4.4b. It is still
+# less accurate than seasonal naive.
