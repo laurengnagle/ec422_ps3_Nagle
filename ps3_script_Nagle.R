@@ -17,7 +17,6 @@ retail_raw <- read_csv(
   )
 )
 
-#2.3a
 retail_raw_long <- retail_raw |>
   select(observation_date, RSAFS, RSAFSNA) |>
   pivot_longer(cols = c(RSAFS, RSAFSNA), names_to = "series_id", values_to = "sales")
@@ -56,6 +55,9 @@ can_gas_recent <- can_gas_recent |>
          month = month(Month, label = TRUE),
          quarter = quarter(Month))
 
+# 2.6b ANSWER: December has the highest average production (17.1)
+# and June has the lowest (14.9).
+
 can_gas_recent |>
   as_tibble() |>
   group_by(month) |>
@@ -76,3 +78,8 @@ can_gas_q <- can_gas |>
 head(can_gas_q)
 
 can_gas_q |> autoplot(Volume)
+
+# 2.6d ANSWER: We use sum() because Volume measures gas produced during each month,
+# so the total produced in a quarter is the sum of its three months. The mean
+# would give the production of an average month instead of the whole quarter.
+# The quarterly series is still seasonal. Q1 and Q4 are high and Q3 is low every year.
