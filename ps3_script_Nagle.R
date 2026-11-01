@@ -32,3 +32,47 @@ retail_ts <- retail_raw_long |>
 #2.4b
 head(retail_ts)
 has_gaps(retail_ts)
+
+#2.5a
+key_vars(canadian_gas)
+index_var(canadian_gas)
+
+#2.5b
+can_gas <- canadian_gas |>
+  select(Month, Volume)
+
+has_gaps(can_gas)
+head(can_gas)
+
+#2.6a
+can_gas_recent <- can_gas |>
+  filter(Month >= yearmonth("1990 Jan"))
+
+head(can_gas_recent)
+
+#2.6b
+can_gas_recent <- can_gas_recent |>
+  mutate(year = year(Month),
+         month = month(Month, label = TRUE),
+         quarter = quarter(Month))
+
+can_gas_recent |>
+  as_tibble() |>
+  group_by(month) |>
+  summarize(avg_volume = mean(Volume))
+
+#2.6c
+can_gas_recent |>
+  mutate(next_month = Month + 1,
+        same_month_last_year = Month - 12) |>
+  head()
+
+#2.6d
+can_gas_q <- can_gas |>
+  filter(Month <= yearmonth("2004 Dec")) |>
+  index_by(Quarter = yearquarter(Month)) |>
+  summarize(Volume = sum(Volume))
+
+head(can_gas_q)
+
+can_gas_q |> autoplot(Volume)
