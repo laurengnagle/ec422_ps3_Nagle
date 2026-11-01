@@ -17,6 +17,7 @@ retail_raw <- read_csv(
   )
 )
 
+#2.3a
 retail_raw_long <- retail_raw |>
   select(observation_date, RSAFS, RSAFSNA) |>
   pivot_longer(cols = c(RSAFS, RSAFSNA), names_to = "series_id", values_to = "sales")
@@ -83,3 +84,40 @@ can_gas_q |> autoplot(Volume)
 # so the total produced in a quarter is the sum of its three months. The mean
 # would give the production of an average month instead of the whole quarter.
 # The quarterly series is still seasonal. Q1 and Q4 are high and Q3 is low every year.
+
+# 2.7a
+retail_ts |> autoplot(sales)
+
+# 2.7b
+retail_ts |>
+  autoplot(sales) +
+  labs(title = "U.S. Retail and Food Services Sales",
+       subtitle = "Seasonally adjusted vs. not seasonally adjusted",
+       x = NULL, y = "Millions of dollars", color = NULL) +
+  theme_minimal()
+
+#2.7b ANSWER: The NSA series spikes every December from holiday spending and drops
+# in January when spending returns to normal. The SA series does not have this
+# pattern because seasonal adjustment removes it. Over the long run, both series
+# follow the same path, with the SA line running through the middle of the NSA
+# swings. Both series show the drops in 2008-09 and in 2020, because seasonal
+# adjustment only removes patterns that repeat every year, not one-time events
+# like recessions.
+
+# 2.7c
+can_gas |>
+  autoplot(Volume) +
+  labs(title = "Canadian Natural Gas Production",
+       x = NULL, y = "Billions of cubic meters") +
+  theme_minimal()
+
+# 2.7d
+can_gas |>
+  autoplot(Volume) +
+  geom_smooth(se = FALSE) +
+  labs(title = "Canadian Natural Gas Production with Smoothed Trend",
+       x = NULL, y = "Billions of cubic meters") +
+  theme_minimal()
+
+# 2.7d ANSWER: I added geom_smooth() to show the long-run trend underneath the
+# seasonal swings.
