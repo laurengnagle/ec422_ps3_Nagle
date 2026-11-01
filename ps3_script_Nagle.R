@@ -240,6 +240,11 @@ retail_nsa_x13 <- retail_ts |>
 
 retail_nsa_x13 |> autoplot()
 
+# 4.3a ANSWER: The seasonal factor is highest in December (about 1.15), so December
+# sales are typically about 15% above trend. The seasonal swings shrink over time:
+# the gap between the highest and lowest seasonal factor falls from about 0.31 in
+# 1992 to about 0.19 in 2024.
+
 # 4.3b
 sa_compare <- retail_nsa_x13 |>
   as_tibble() |>
@@ -260,11 +265,22 @@ sa_compare |>
        x = NULL, y = "Difference (%)") +
   theme_minimal()
 
+# 4.3b ANSWER: My X-13 adjustment matches the Census Bureau's very closely. The
+# median difference is about 0% and half of all months are within +/-0.15%. The
+# largest differences (up to about 1.8%) occur in January of 2021-2024 and December
+# 2019, around the COVID period, where the Census Bureau's tailored settings for
+# outliers and holidays, and its adjustment of categories separately, matter most.
+
 # 4.4a
 can_gas_fit <- can_gas |>
   model(TSLM(log_volume ~ trend() + season()))
 
 report(can_gas_fit)
+
+# 4.4a ANSWER: The trend coefficient is 0.004, so gas production grew by about
+# 0.4% per month on average. June has the most significant seasonal effect
+# (t = -4.78): June production is about 0.25 log points (roughly 25%) below
+# January, relative to trend, consistent with the summer low in gas production.
 
 # 4.4b
 can_gas_fit |>
@@ -275,6 +291,11 @@ can_gas_fit |>
   labs(title = "Linear Trend + Seasonal Dummies Fit: Canadian Gas Production",
        y = "log(Volume)", color = NULL) +
   theme_minimal()
+
+# 4.4b ANSWER: The fitted line tracks the actual series well from about 1980 to
+# 1995, but it overshoots in the early 1960s, undershoots through the 1970s, and
+# overshoots again after 2000 when production levels off, because a straight-line
+# trend cannot follow the curved trend in log production.
 
 # 4.4c
 can_gas_fit |> gg_tsresiduals()
@@ -289,4 +310,33 @@ can_gas_fit |>
 # test has a p-value of 0, so at the 5% level we reject the null that the
 # residuals are white noise. The main leftover structure comes from the
 # straight-line trend failing to capture the curved trend in log production.
+
+# Helpers for 4.3a and 4.4a
+retail_nsa_x13 |>
+  as_tibble() |>
+  mutate(m = month(Month, label = TRUE)) |>
+  group_by(m) |>
+  summarize(avg_seasonal = mean(seasonal)) |>
+  arrange(desc(avg_seasonal))
+
+can_gas_fit |>
+  tidy() |>
+  select(term, estimate, std.error, statistic, p.value) |>
+  knitr::kable(digits = 3)
+
+# Helper for 4.3a: size of the seasonal swing (max - min factor) in selected years
+retail_nsa_x13 |>
+  as_tibble() |>
+  mutate(yr = year(Month)) |>
+  group_by(yr) |>
+  summarize(swing = max(seasonal) - min(seasonal)) |>
+  filter(yr %in% c(1992, 2000, 2008, 2016, 2024))
+
+# Helpers for 4.3b: how close my X-13 is to the Census Bureau's
+summary(sa_compare$pct_diff)
+
+sa_compare |>
+  arrange(desc(abs(pct_diff))) |>
+  head(5)
+
 
