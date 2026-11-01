@@ -172,6 +172,11 @@ can_gas <- can_gas |>
 
 can_gas |> autoplot(growth_gap)
 
+# 3.2a ANSWER: The log-difference approximation is fairly good in most months, with a
+# gap under about 0.5 percentage points, but it reaches about 3.5 points in
+# months with very large growth rates (near 20-28%), since the approximation
+# is only accurate when growth rates are small.
+
 # 3.3
 retail_ts <- retail_ts |>
   group_by_key() |>
@@ -183,4 +188,12 @@ retail_ts |>
   labs(title = "Month-over-Month Growth: SA vs. NSA Retail Sales",
        x = NULL, y = "Growth rate (%)", color = NULL) +
   theme_minimal()
+
+# 3.3 ANSWER: The NSA growth rate is much noisier than the SA growth rate. NSA
+# growth jumps roughly +15-20% every December and falls roughly 25-30% every
+# January because of the holiday spending pattern, while SA growth
+# stays near 0-1% because that seasonal pattern has been removed. The large SA
+# movements happen around 2020, since seasonal adjustment removes the repeating
+# yearly pattern but not one-time shocks like COVID.
+
 
