@@ -210,11 +210,22 @@ retail_ts |>
   labs(title = "Seasonal Pattern in SA Retail Sales", y = "Millions of dollars") +
   theme_minimal()
 
+# 4.1b ANSWER: In the NSA season plot, every year has roughly the same shape of low in
+# January to February, a step up in March, a dip in September, and a large peak in
+# December. In the SA season plot, the lines are nearly flat across the year with
+# no repeating shape, because the seasonal pattern has been removed. The April
+# 2020 COVID drop appears in both, since it is a one-time shock, not seasonal.
+
 # 4.1c
 can_gas |>
   gg_season(log_volume) +
   labs(title = "Seasonal Pattern in Canadian Gas Production", y = "log(Volume)") +
   theme_minimal()
+
+# 4.1c ANSWER: Gas production is highest in the winter months (December-January)
+# and lowest in the summer (June-July). This matches intuition, since natural gas
+# is largely used for heating, so demand peaks in Canada's cold months. The
+# seasonal pattern is also much weaker in recent years than in the 1960s.
 
 # 4.2
 can_gas |>
@@ -271,4 +282,11 @@ can_gas_fit |> gg_tsresiduals()
 can_gas_fit |>
   augment() |>
   features(.innov, ljung_box, lag = 24)
+
+# 4.4c ANSWER: The residuals do not look like white noise. They follow a slow
+# wave over time instead of bouncing randomly around zero, and the ACF bars start
+# near 1 and decline slowly, staying far outside the blue bands. The Ljung-Box
+# test has a p-value of 0, so at the 5% level we reject the null that the
+# residuals are white noise. The main leftover structure comes from the
+# straight-line trend failing to capture the curved trend in log production.
 
