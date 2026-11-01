@@ -121,3 +121,66 @@ can_gas |>
 
 # 2.7d ANSWER: I added geom_smooth() to show the long-run trend underneath the
 # seasonal swings.
+
+# 3.1a ANSWER: The seasonal swings in can_gas are fairly small in the 60s and grow much
+# larger from the mid-1970s to around 1990 and then shrink in the 1990s-2000s
+# even though production keeps rising. So the swings do not consistently grow
+# with the level of the series.
+
+# 3.1b
+can_gas <- can_gas |>
+  mutate(log_volume = log(Volume))
+
+can_gas |>
+  autoplot(log_volume) +
+  labs(title = "Log of Canadian Gas Production", x = NULL, y = "log(Volume)") +
+  theme_minimal()
+
+#3.1b ANSWER: After taking logs, the trend appears to be more curved. It rises sharply 
+# in the 60s and flattens later. This means the growth rate of production slowed over time.
+# The seasonal swings are now largest in the 1960s and smallest in the 2000s, so logs don't 
+# make the swings a constant size. Logs are really only a good idea for can_gas since they
+# let us interpret changes as percentages, but they don't give a straight trend or stable 
+# seasonal swings.
+
+# 3.1c
+retail_nsa <- retail_ts |>
+  filter(series_id == "RSAFSNA") |>
+  mutate(log_sales = log(sales))
+
+retail_nsa |> autoplot(sales) +
+  labs(title = "NSA Retail Sales (Level)", x = NULL) + theme_minimal()
+retail_nsa |> autoplot(log_sales) +
+  labs(title = "NSA Retail Sales (Log)", x = NULL) + theme_minimal()
+
+#3.1c ANSWER: Logging retail sales makes more sense here than for logging can_gas. In
+# levels, the December spikes get larger as sales grow. However, in logs the spikes are roughly
+# the same size throughout, meaning the seasonal swings are proportional to the level 
+# of the series.
+
+# 3.2a
+can_gas <- can_gas |>
+  mutate(
+    growth_direct  = 100 * difference(Volume) / lag(Volume),
+    growth_logdiff = 100 * difference(log_volume)
+  )
+
+can_gas |> autoplot(growth_direct)
+
+can_gas <- can_gas |>
+  mutate(growth_gap = abs(growth_direct - growth_logdiff))
+
+can_gas |> autoplot(growth_gap)
+
+# 3.3
+retail_ts <- retail_ts |>
+  group_by_key() |>
+  mutate(growth_mom = 100 * difference(log(sales))) |>
+  ungroup()
+
+retail_ts |>
+  autoplot(growth_mom) +
+  labs(title = "Month-over-Month Growth: SA vs. NSA Retail Sales",
+       x = NULL, y = "Growth rate (%)", color = NULL) +
+  theme_minimal()
+
